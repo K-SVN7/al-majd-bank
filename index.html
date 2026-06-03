@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Al Majd Bank</title>
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#8B1A2F">
+<!-- iOS -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Al Majd Bank">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+:root {
+  --red: #8B1A2F;
+  --red-light: #A52040;
+  --red-dark: #6B1223;
+  --bg: #EEF0F5;
+  --text: #1A1A2E;
+  --text-muted: #6B7280;
+  --border: rgba(255,255,255,0.45);
+  --border-dark: rgba(0,0,0,0.08);
+  --success: #10B981;
+  --danger: #EF4444;
+  --radius: 22px;
+  --radius-sm: 14px;
+  /* Glass */
+  --glass-bg: rgba(255,255,255,0.62);
+  --glass-bg-strong: rgba(255,255,255,0.82);
+  --glass-blur: blur(20px) saturate(1.8);
+  --glass-shadow: 0 8px 32px rgba(139,26,47,0.10), 0 1.5px 0 rgba(255,255,255,0.7) inset;
+  --glass-border: 1.5px solid rgba(255,255,255,0.55);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;background:var(--bg)}
+#app{width:100%;height:100vh;background:linear-gradient(160deg,#e8ecf4 0%,#dde3ee 50%,#e4dce8 100%);position:relative;overflow:hidden;display:flex;flex-direction:column}
+
+/* BG BLOBS */
+#app::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background: radial-gradient(ellipse 60% 40% at 20% 10%, rgba(139,26,47,0.13) 0%, transparent 70%),
+              radial-gradient(ellipse 50% 50% at 80% 80%, rgba(100,80,160,0.10) 0%, transparent 70%),
+              radial-gradient(ellipse 40% 30% at 60% 30%, rgba(139,26,47,0.07) 0%, transparent 60%);}
+
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;z-index:1;transition:transform .38s cubic-bezier(.77,0,.18,1),opacity .38s ease}
+.screen.hidden{transform:translateX(100%);opacity:0;pointer-events:none}
+.screen.slide-left{transform:translateX(-100%);opacity:0;pointer-events:none}
+
+/* ====== GLASS CARD ====== */
+.glass{background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:var(--glass-border);box-shadow:var(--glass-shadow)}
+.glass-strong{background:var(--glass-bg-strong);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:var(--glass-border);box-shadow:var(--glass-shadow)}
+
+/* ====== LOGIN ====== */
+#screen-login{background:linear-gradient(170deg,var(--red-dark) 0%,var(--red) 55%,#b02040 100%);justify-content:center;align-items:center;padding-bottom:min(488px,58vh)}
+#screen-login::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(255,255,255,0.12) 0%,transparent 70%)}
+.login-logo-area{display:flex;flex-direction:column;align-items:center;margin-bottom:44px;position:relative;z-index:2}
+.login-logo{width:82px;height:82px;background:rgba(255,255,255,0.15);border-radius:26px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;border:1.5px solid rgba(255,255,255,0.30);backdrop-filter:blur(10px);box-shadow:0 8px 32px rgba(0,0,0,0.18)}
+.login-bank-name{font-size:27px;color:white;font-weight:700;letter-spacing:0.3px}
+.login-bank-sub{font-size:11px;color:rgba(255,255,255,0.6);letter-spacing:2.5px;text-transform:uppercase;margin-top:5px}
+.login-card{background:rgba(255,255,255,0.92);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:var(--radius) var(--radius) 0 0;padding:32px 26px 36px;width:100%;position:absolute;bottom:0;border-top:1.5px solid rgba(255,255,255,0.8);box-shadow:0 -8px 40px rgba(139,26,47,0.12)}
+.login-title{font-size:21px;font-weight:700;color:var(--text);margin-bottom:5px}
+.login-subtitle{font-size:13px;color:var(--text-muted);margin-bottom:24px}
+.pin-dots{display:flex;gap:16px;justify-content:center;margin-bottom:28px}
+.pin-dot{width:15px;height:15px;border-radius:50%;border:2px solid var(--red);background:transparent;transition:background .2s,transform .15s}
+.pin-dot.filled{background:var(--red);transform:scale(1.1)}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.numpad-btn{height:62px;border:none;background:rgba(238,240,245,0.9);border-radius:var(--radius-sm);font-size:20px;font-weight:500;color:var(--text);cursor:pointer;transition:background .15s,transform .1s;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.7)}
+.numpad-btn:active{background:rgba(220,224,232,0.95);transform:scale(0.95)}
+.numpad-btn.face{background:transparent;border:1.5px solid rgba(139,26,47,0.2)}
+.login-error{text-align:center;color:var(--danger);font-size:13px;margin-bottom:10px;min-height:18px}
+
+/* ====== TOP BAR (glass) ====== */
+.top-bar{background:rgba(139,26,47,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.15)}
+.top-bar-title{font-size:17px;color:white;font-weight:700;letter-spacing:0.2px}
+.back-btn{background:none;border:none;color:white;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:15px;font-weight:500;padding:4px 0}
+.top-bar-icon{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid rgba(255,255,255,0.25)}
+
+/* ====== SCROLL ====== */
+.scroll-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:92px;position:relative;z-index:1}
+.scroll-content::-webkit-scrollbar{display:none}
+
+/* ====== PTR ====== */
+.ptr-indicator{text-align:center;padding:10px;font-size:12px;color:var(--text-muted);display:none;align-items:center;justify-content:center;gap:6px}
+.ptr-indicator.visible{display:flex}
+.ptr-spinner{width:14px;height:14px;border:2px solid rgba(0,0,0,0.1);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.conv-input{width:100%;height:42px;border:1.5px solid rgba(255,255,255,0.6);border-radius:10px;padding:0 12px;font-size:17px;font-weight:600;color:var(--text);background:rgba(255,255,255,0.65);outline:none;font-family:inherit}
+.conv-input:focus{border-color:var(--red)}
+.conv-result{height:42px;display:flex;align-items:center;font-size:17px;font-weight:700;color:var(--text)}
+
+/* ====== DASHBOARD HEADER ====== */
+.dash-header{background:linear-gradient(160deg,var(--red-dark),var(--red));padding:18px 20px 28px;position:relative;overflow:hidden;flex-shrink:0}
+.dash-header::after{content:'';position:absolute;right:-30px;top:-30px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,0.07);pointer-events:none}
+.dash-greeting{font-size:11px;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:3px}
+.dash-name{font-size:21px;color:white;font-weight:700}
+
+/* ====== ACCOUNT CARDS (glass) ====== */
+.account-card{border-radius:var(--radius);padding:20px;cursor:pointer;transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden}
+.account-card::before{content:'';position:absolute;top:-20px;right:-20px;width:100px;height:100px;border-radius:50%;background:rgba(139,26,47,0.06);pointer-events:none}
+.account-card:active{transform:scale(0.975)}
+.account-type{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:7px;font-weight:600}
+.account-number{font-size:11px;color:var(--text-muted);margin-bottom:10px;font-family:monospace;letter-spacing:1px}
+.account-balance{font-size:30px;font-weight:700;color:var(--text);letter-spacing:-0.5px}
+.account-balance span{font-size:14px;font-weight:500;color:var(--text-muted);margin-left:4px}
+.account-footer{display:flex;justify-content:space-between;align-items:center;margin-top:14px}
+.account-chip{background:rgba(139,26,47,0.10);color:var(--red);font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:0.3px}
+
+/* ====== FOREX (glass) ====== */
+.forex-widget{margin:14px 16px 0;border-radius:var(--radius);padding:16px 18px}
+.forex-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.forex-title{font-size:13px;font-weight:700;color:var(--text)}
+.forex-refresh-btn{background:rgba(139,26,47,0.08);border:none;cursor:pointer;color:var(--red);font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:8px;border:1px solid rgba(139,26,47,0.12)}
+.forex-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0}
+.forex-row:not(:last-child){border-bottom:1px solid rgba(0,0,0,0.06)}
+.forex-pair{display:flex;align-items:center;gap:10px}
+.forex-flag{font-size:20px}
+.forex-pair-name{font-size:14px;font-weight:700;color:var(--text)}
+.forex-pair-sub{font-size:11px;color:var(--text-muted)}
+.forex-right{text-align:right}
+.forex-rate{font-size:16px;font-weight:700;color:var(--text)}
+.forex-change{font-size:12px;font-weight:600;display:flex;align-items:center;gap:2px;justify-content:flex-end;margin-top:2px}
+.forex-change.up{color:var(--success)}
+.forex-change.down{color:var(--danger)}
+.forex-error{font-size:11px;color:var(--text-muted);text-align:center;padding:4px 0;display:none;background:rgba(239,68,68,0.07);border-radius:8px;margin-bottom:6px}
+.forex-error.show{display:block}
+
+/* ====== QUICK ACTIONS (glass) ====== */
+.quick-actions{margin:14px 16px 0;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.qa-btn{border-radius:var(--radius-sm);padding:14px 6px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;border:none;transition:transform .15s;background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:var(--glass-border);box-shadow:0 4px 16px rgba(139,26,47,0.07)}
+.qa-btn:active{transform:scale(0.94)}
+.qa-icon{width:38px;height:38px;background:rgba(139,26,47,0.09);border-radius:12px;display:flex;align-items:center;justify-content:center}
+.qa-label{font-size:10px;color:var(--text-muted);font-weight:600;text-align:center;letter-spacing:0.2px}
+
+/* ====== SECTION ====== */
+.section-header{display:flex;justify-content:space-between;align-items:center;padding:20px 16px 10px}
+.section-title{font-size:16px;font-weight:700;color:var(--text)}
+.section-link{font-size:13px;color:var(--red);font-weight:600;cursor:pointer}
+
+/* ====== TX ITEMS (glass) ====== */
+.tx-list{padding:0 16px;display:flex;flex-direction:column;gap:8px}
+.tx-item{border-radius:var(--radius-sm);padding:13px 15px;display:flex;align-items:center;gap:13px;background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:var(--glass-border);box-shadow:0 2px 12px rgba(0,0,0,0.04)}
+.tx-icon{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.tx-icon.income{background:rgba(16,185,129,0.12);color:var(--success)}
+.tx-icon.expense{background:rgba(139,26,47,0.08);color:var(--red)}
+.tx-icon.transfer-icon{background:rgba(59,130,246,0.10);color:#3B82F6}
+.tx-info{flex:1}
+.tx-name{font-size:14px;font-weight:600;color:var(--text)}
+.tx-date{font-size:11px;color:var(--text-muted);margin-top:2px}
+.tx-cat{font-size:10px;color:var(--text-muted);margin-top:1px;text-transform:uppercase;letter-spacing:0.5px}
+.tx-amount{font-size:15px;font-weight:700}
+.tx-amount.income{color:var(--success)}
+.tx-amount.expense{color:var(--text)}
+
+/* ====== BOTTOM NAV (glass) ====== */
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,0.75);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1.5px solid rgba(255,255,255,0.6);display:flex;padding:10px 0 20px;z-index:100;box-shadow:0 -4px 24px rgba(0,0,0,0.06)}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;background:none;border:none;padding:6px 0;transition:transform .15s}
+.nav-btn:active{transform:scale(0.9)}
+.nav-btn svg{width:22px;height:22px}
+.nav-label{font-size:10px;font-weight:600;letter-spacing:0.2px}
+.nav-btn.active svg{color:var(--red)}
+.nav-btn.active .nav-label{color:var(--red)}
+.nav-btn:not(.active) svg{color:#9CA3AF}
+.nav-btn:not(.active) .nav-label{color:#9CA3AF}
+
+/* ====== FILTER BAR ====== */
+.filter-bar{padding:14px 16px;display:flex;gap:8px;overflow-x:auto;flex-shrink:0}
+.filter-bar::-webkit-scrollbar{display:none}
+.filter-chip{flex-shrink:0;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;background:var(--glass-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1.5px solid rgba(255,255,255,0.5);color:var(--text-muted);transition:all .2s}
+.filter-chip.active{background:var(--red);border-color:var(--red);color:white;box-shadow:0 4px 14px rgba(139,26,47,0.25)}
+
+/* ====== TRANSFER ====== */
+.transfer-form{padding:20px;display:flex;flex-direction:column;gap:15px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-label{font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px}
+.form-input,.form-select{height:52px;border:1.5px solid rgba(255,255,255,0.6);border-radius:var(--radius-sm);padding:0 16px;font-size:15px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--text);background:var(--glass-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);outline:none;transition:border-color .2s,box-shadow .2s}
+.form-input:focus,.form-select:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(139,26,47,0.10)}
+.form-select{appearance:none}
+.submit-btn{height:54px;background:linear-gradient(135deg,var(--red-light),var(--red-dark));color:white;border:none;border-radius:var(--radius-sm);font-size:16px;font-weight:700;cursor:pointer;margin-top:6px;transition:opacity .2s,transform .1s;font-family:inherit;box-shadow:0 6px 20px rgba(139,26,47,0.30);letter-spacing:0.3px}
+.submit-btn:active{opacity:.9;transform:scale(0.98)}
+
+/* ====== SETTINGS ====== */
+.settings-section{padding:18px 16px 8px}
+.settings-section-title{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin-bottom:10px}
+.settings-list{border-radius:var(--radius-sm);overflow:hidden;background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:var(--glass-border);box-shadow:var(--glass-shadow)}
+.settings-item{display:flex;align-items:center;gap:14px;padding:15px 16px;cursor:pointer;border-bottom:1px solid rgba(0,0,0,0.05);transition:background .15s}
+.settings-item:last-child{border-bottom:none}
+.settings-item:active{background:rgba(0,0,0,0.03)}
+.settings-item-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.settings-item-label{flex:1;font-size:15px;color:var(--text);font-weight:600}
+.settings-item-sub{font-size:12px;color:var(--text-muted);margin-top:1px}
+.settings-arrow{color:#C8D0DC}
+.settings-item.danger .settings-item-label{color:var(--danger)}
+
+/* ====== TOGGLE ====== */
+.toggle-switch{position:relative;width:44px;height:26px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:rgba(0,0,0,0.15);border-radius:26px;cursor:pointer;transition:background .2s}
+.toggle-slider:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:white;border-radius:50%;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,0.2)}
+.toggle-switch input:checked+.toggle-slider{background:var(--red)}
+.toggle-switch input:checked+.toggle-slider:before{transform:translateX(18px)}
+
+/* ====== BACK-OFFICE ====== */
+.bo-section{padding:18px 16px}
+.bo-title{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px}
+.bo-card{background:var(--glass-bg-strong);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:var(--glass-border);box-shadow:var(--glass-shadow);border-radius:var(--radius-sm);padding:16px;margin-bottom:12px}
+.bo-card-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px}
+.bo-input-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.bo-input-label{font-size:13px;color:var(--text-muted);flex:1;font-weight:500}
+.bo-input{width:140px;height:40px;border:1.5px solid rgba(255,255,255,0.6);border-radius:10px;padding:0 12px;font-size:14px;font-family:inherit;color:var(--text);outline:none;text-align:right;background:rgba(255,255,255,0.7)}
+.bo-input:focus{border-color:var(--red)}
+.bo-save-btn{width:100%;height:44px;background:linear-gradient(135deg,var(--red-light),var(--red-dark));color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(139,26,47,0.25);letter-spacing:0.3px}
+
+/* BO TX ROWS */
+.bo-tx-item{padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.06)}
+.bo-tx-item:last-child{border-bottom:none}
+.bo-tx-grid{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;margin-bottom:6px}
+.bo-tx-name-input{height:34px;border:1.5px solid rgba(255,255,255,0.6);border-radius:8px;padding:0 10px;font-size:13px;font-family:inherit;color:var(--text);background:rgba(255,255,255,0.7);outline:none;width:100%}
+.bo-tx-name-input:focus{border-color:var(--red)}
+.bo-tx-amount-input{width:90px;height:34px;border:1.5px solid rgba(255,255,255,0.6);border-radius:8px;padding:0 8px;font-size:13px;font-family:inherit;text-align:right;outline:none;background:rgba(255,255,255,0.7);color:var(--text)}
+.bo-tx-amount-input:focus{border-color:var(--red)}
+.bo-tx-selects{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px}
+.bo-tx-select{height:30px;border:1.5px solid rgba(255,255,255,0.6);border-radius:8px;padding:0 8px;font-size:12px;font-family:inherit;color:var(--text);background:rgba(255,255,255,0.7);outline:none;appearance:none}
+.bo-tx-select:focus{border-color:var(--red)}
+.bo-remove-btn{background:none;border:none;color:#D1D5DB;cursor:pointer;font-size:16px;padding:0 4px;line-height:1;flex-shrink:0}
+.bo-add-btn{width:100%;height:40px;border:2px dashed rgba(139,26,47,0.2);border-radius:10px;background:none;color:var(--text-muted);font-size:13px;cursor:pointer;margin-top:10px;font-family:inherit;font-weight:600;transition:border-color .2s,color .2s}
+.bo-add-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* ====== MODAL ====== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:flex-end;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .3s}
+.modal-overlay.show{opacity:1;pointer-events:all}
+.modal-box{background:rgba(255,255,255,0.92);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:var(--radius) var(--radius) 0 0;padding:28px 24px 36px;width:100%;border-top:1.5px solid rgba(255,255,255,0.8);box-shadow:0 -8px 40px rgba(0,0,0,0.15);transform:translateY(100%);transition:transform .38s cubic-bezier(.77,0,.18,1)}
+.modal-overlay.show .modal-box{transform:translateY(0)}
+.modal-title{font-size:19px;font-weight:700;color:var(--text);margin-bottom:5px}
+.modal-sub{font-size:13px;color:var(--text-muted);margin-bottom:22px}
+.modal-pin-dots{display:flex;gap:12px;justify-content:center;margin-bottom:22px}
+.modal-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--red);background:transparent;transition:background .2s,transform .15s}
+.modal-dot.filled{background:var(--red);transform:scale(1.1)}
+.modal-numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.modal-num-btn{height:56px;background:rgba(238,240,245,0.9);border:1px solid rgba(255,255,255,0.7);border-radius:10px;font-size:18px;font-weight:500;color:var(--text);cursor:pointer;transition:background .15s}
+.modal-num-btn:active{background:rgba(220,224,232,0.95)}
+.modal-error{text-align:center;color:var(--danger);font-size:13px;margin-top:12px;min-height:18px;font-weight:500}
+.modal-cancel{width:100%;margin-top:12px;height:46px;background:rgba(0,0,0,0.05);border:none;border-radius:12px;font-size:15px;color:var(--text-muted);cursor:pointer;font-family:inherit;font-weight:600}
+
+/* ====== TOAST ====== */
+.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%) translateY(-10px);background:rgba(26,26,46,0.90);backdrop-filter:blur(16px);color:white;padding:11px 22px;border-radius:24px;font-size:13px;font-weight:600;z-index:300;opacity:0;transition:all .3s;white-space:nowrap;max-width:90%;border:1px solid rgba(255,255,255,0.15)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.error{background:rgba(239,68,68,0.90)}
+.toast.success{background:rgba(16,185,129,0.90)}
+
+/* ====== FACE ID ====== */
+.faceid-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:400;opacity:0;pointer-events:none;transition:opacity .3s}
+.faceid-overlay.show{opacity:1;pointer-events:all}
+.faceid-frame{width:140px;height:140px;position:relative;margin-bottom:24px}
+.faceid-corner{position:absolute;width:26px;height:26px;border-color:white;border-style:solid}
+.faceid-corner.tl{top:0;left:0;border-width:3px 0 0 3px;border-radius:5px 0 0 0}
+.faceid-corner.tr{top:0;right:0;border-width:3px 3px 0 0;border-radius:0 5px 0 0}
+.faceid-corner.bl{bottom:0;left:0;border-width:0 0 3px 3px;border-radius:0 0 0 5px}
+.faceid-corner.br{bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 0 5px 0}
+.faceid-scan{position:absolute;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,#00ff88,transparent);animation:scan 1.5s ease-in-out infinite;top:20px}
+@keyframes scan{0%,100%{top:10px}50%{top:120px}}
+.faceid-text{color:white;font-size:16px;font-weight:600}
+.faceid-sub{color:rgba(255,255,255,0.55);font-size:13px;margin-top:6px}
+
+/* ====== BALANCE BANNER ====== */
+.balance-banner{background:rgba(139,26,47,0.07);border-radius:var(--radius-sm);padding:14px 16px;border:1.5px solid rgba(139,26,47,0.12)}
+
+/* ====== BANK CARD CAROUSEL ====== */
+.cards-scroll-wrap{overflow-x:auto;scroll-snap-type:x mandatory;display:flex;gap:16px;padding:20px 20px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.cards-scroll-wrap::-webkit-scrollbar{display:none}
+.bank-card{flex-shrink:0;width:calc(100vw - 60px);max-width:320px;height:206px;border-radius:20px;padding:20px 22px;position:relative;overflow:hidden;scroll-snap-align:start;box-shadow:0 20px 52px rgba(0,0,0,0.28),0 2px 6px rgba(0,0,0,0.18);display:flex;flex-direction:column;justify-content:space-between;cursor:default;-webkit-user-select:none;user-select:none}
+.bank-card-shimmer{position:absolute;top:0;left:0;right:0;height:55%;background:linear-gradient(180deg,rgba(255,255,255,0.11) 0%,transparent 100%);border-radius:20px 20px 0 0;pointer-events:none}
+.bank-card-orb{position:absolute;border-radius:50%;pointer-events:none}
+.card-bank-name{font-size:11px;color:rgba(255,255,255,0.82);font-weight:700;letter-spacing:1.8px;text-transform:uppercase}
+.card-type-badge{font-size:9.5px;color:rgba(255,255,255,0.52);text-transform:uppercase;letter-spacing:1.2px;margin-top:2px}
+.card-chip{border:1.5px solid rgba(255,255,255,0.38);border-radius:5px;width:30px;height:24px;background:rgba(255,255,255,0.12)}
+.card-number{font-size:16px;color:rgba(255,255,255,0.88);letter-spacing:3.5px;font-family:'Courier New',Courier,monospace;font-weight:600;position:relative;z-index:1}
+.card-label{font-size:8.5px;color:rgba(255,255,255,0.48);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
+.card-holder{font-size:12px;color:rgba(255,255,255,0.92);font-weight:600;letter-spacing:0.8px;text-transform:uppercase}
+.card-expiry{font-size:12px;color:rgba(255,255,255,0.92);font-weight:600;letter-spacing:1px}
+.card-visa{font-family:'Arial Black',Arial,sans-serif;font-size:17px;font-weight:900;font-style:italic;color:rgba(255,255,255,0.88);letter-spacing:-0.5px}
+.card-dots{display:flex;gap:7px;justify-content:center;margin:10px 0 16px}
+.card-dot{width:7px;height:7px;border-radius:50%;background:rgba(139,26,47,0.18);transition:background .2s,transform .2s}
+.card-dot.active{background:var(--red);transform:scale(1.3)}
+.card-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 16px}
+.card-action-btn{border-radius:var(--radius-sm);padding:14px 13px;display:flex;align-items:center;gap:11px;background:var(--glass-bg-strong);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:var(--glass-border);box-shadow:var(--glass-shadow);cursor:pointer;text-align:left;transition:transform .15s,background .15s}
+.card-action-btn:active{transform:scale(0.95)}
+.card-action-icon{width:34px;height:34px;border-radius:10px;background:rgba(139,26,47,0.09);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.card-action-label{font-size:13px;font-weight:600;color:var(--text);line-height:1.3}
+
+/* ====== SUPPORT ====== */
+.support-search{margin:14px 16px 0;height:46px;display:flex;align-items:center;gap:10px;padding:0 15px;border-radius:var(--radius-sm);background:var(--glass-bg-strong);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:var(--glass-border);box-shadow:var(--glass-shadow)}
+.support-search input{flex:1;border:none;background:transparent;font-size:14px;color:var(--text);outline:none;font-family:inherit}
+.support-search input::placeholder{color:var(--text-muted)}
+.support-qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 16px}
+.support-qa-btn{border-radius:var(--radius-sm);padding:15px 13px;display:flex;flex-direction:column;gap:7px;background:var(--glass-bg-strong);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:var(--glass-border);box-shadow:var(--glass-shadow);cursor:pointer;text-align:left;transition:transform .15s}
+.support-qa-btn:active{transform:scale(0.96)}
+.support-qa-icon{width:34px;height:34px;border-radius:10px;background:rgba(139,26,47,0.09);display:flex;align-items:center;justify-content:center}
+.support-qa-label{font-size:13px;font-weight:700;color:var(--text);line-height:1.3}
+.support-qa-sub{font-size:11px;color:var(--text-muted);line-height:1.4}
+.faq-item{border-bottom:1px solid rgba(0,0,0,0.06)}
+.faq-item:last-child{border-bottom:none}
+.faq-q{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;cursor:pointer;gap:12px;-webkit-tap-highlight-color:transparent}
+.faq-q-text{font-size:14px;font-weight:600;color:var(--text);flex:1;line-height:1.4}
+.faq-chevron{color:#C8D0DC;transition:transform .25s ease;flex-shrink:0}
+.faq-item.open .faq-chevron{transform:rotate(180deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .32s ease,padding .32s ease;font-size:13px;color:var(--text-muted);line-height:1.65;padding:0 16px}
+.faq-item.open .faq-a{max-height:180px;padding:0 16px 16px}
+.contact-row{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid rgba(0,0,0,0.05)}
+.contact-row:last-child{border-bottom:none}
+.contact-icon{width:36px;height:36px;border-radius:10px;background:rgba(139,26,47,0.09);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.contact-label{font-size:14px;font-weight:600;color:var(--text)}
+.contact-sub{font-size:11px;color:var(--text-muted);margin-top:1px}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- FACE ID -->
+<div class="faceid-overlay" id="faceidOverlay">
+  <div class="faceid-frame">
+    <div class="faceid-corner tl"></div><div class="faceid-corner tr"></div>
+    <div class="faceid-corner bl"></div><div class="faceid-corner br"></div>
+    <div class="faceid-scan"></div>
+  </div>
+  <div class="faceid-text">Face ID</div>
+  <div class="faceid-sub">Look at your screen</div>
+</div>
+
+<!-- CODE MODAL -->
+<div class="modal-overlay" id="codeModal">
+  <div class="modal-box">
+    <div class="modal-title">🔐 Secure Access</div>
+    <div class="modal-sub">Enter your admin code to continue</div>
+    <div class="modal-pin-dots" id="modalDots">
+      <div class="modal-dot"></div><div class="modal-dot"></div>
+      <div class="modal-dot"></div><div class="modal-dot"></div>
+    </div>
+    <div class="modal-numpad">
+      <button class="modal-num-btn" onclick="modalPin('1')">1</button>
+      <button class="modal-num-btn" onclick="modalPin('2')">2</button>
+      <button class="modal-num-btn" onclick="modalPin('3')">3</button>
+      <button class="modal-num-btn" onclick="modalPin('4')">4</button>
+      <button class="modal-num-btn" onclick="modalPin('5')">5</button>
+      <button class="modal-num-btn" onclick="modalPin('6')">6</button>
+      <button class="modal-num-btn" onclick="modalPin('7')">7</button>
+      <button class="modal-num-btn" onclick="modalPin('8')">8</button>
+      <button class="modal-num-btn" onclick="modalPin('9')">9</button>
+      <button class="modal-num-btn" style="font-size:13px;color:var(--text-muted)" onclick="modalPin('clear')">Clear</button>
+      <button class="modal-num-btn" onclick="modalPin('0')">0</button>
+      <button class="modal-num-btn" style="font-size:13px;color:var(--text-muted)" onclick="modalPin('del')">⌫</button>
+    </div>
+    <div class="modal-error" id="modalError"></div>
+    <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== SPLASH ===== -->
+<div id="screen-splash" style="position:fixed;inset:0;z-index:500;background:linear-gradient(170deg,var(--red-dark) 0%,var(--red) 55%,#b02040 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.5s ease">
+  <div class="login-logo-area" style="margin-bottom:60px">
+    <div class="login-logo">
+      <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+        <path d="M22 6L38 14V22C38 30.837 30.837 38 22 38C13.163 38 6 30.837 6 22V14L22 6Z" fill="white" fill-opacity="0.22" stroke="white" stroke-width="2"/>
+        <path d="M15 22H29M22 15V29" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="login-bank-name">Al Majd Bank</div>
+    <div class="login-bank-sub">Qatar · Private Banking</div>
+  </div>
+  <div id="splashSpinner" style="opacity:0;transition:opacity 0.3s ease;width:34px;height:34px">
+    <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+      <circle cx="17" cy="17" r="14" stroke="rgba(255,255,255,0.2)" stroke-width="2.5"/>
+      <circle cx="17" cy="17" r="14" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="66 22" transform="rotate(-90 17 17)"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ===== LOGIN ===== -->
+<div class="screen" id="screen-login">
+  <div class="login-logo-area">
+    <div class="login-logo">
+      <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+        <path d="M22 6L38 14V22C38 30.837 30.837 38 22 38C13.163 38 6 30.837 6 22V14L22 6Z" fill="white" fill-opacity="0.22" stroke="white" stroke-width="2"/>
+        <path d="M15 22H29M22 15V29" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="login-bank-name">Al Majd Bank</div>
+    <div class="login-bank-sub">Qatar · Private Banking</div>
+  </div>
+  <div class="login-card">
+    <div class="login-title">Welcome back</div>
+    <div class="login-subtitle">Viktor Sakov · Enter your PIN</div>
+    <div class="login-error" id="loginError"></div>
+    <div class="pin-dots" id="pinDots">
+      <div class="pin-dot"></div><div class="pin-dot"></div>
+      <div class="pin-dot"></div><div class="pin-dot"></div>
+    </div>
+    <div class="numpad">
+      <button class="numpad-btn" onclick="enterPin('1')">1</button>
+      <button class="numpad-btn" onclick="enterPin('2')">2</button>
+      <button class="numpad-btn" onclick="enterPin('3')">3</button>
+      <button class="numpad-btn" onclick="enterPin('4')">4</button>
+      <button class="numpad-btn" onclick="enterPin('5')">5</button>
+      <button class="numpad-btn" onclick="enterPin('6')">6</button>
+      <button class="numpad-btn" onclick="enterPin('7')">7</button>
+      <button class="numpad-btn" onclick="enterPin('8')">8</button>
+      <button class="numpad-btn" onclick="enterPin('9')">9</button>
+      <button class="numpad-btn face" onclick="triggerFaceId()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.8">
+          <path d="M9 9h.01M15 9h.01M8 13s1 2 4 2 4-2 4-2"/>
+          <rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/>
+          <rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>
+        </svg>
+      </button>
+      <button class="numpad-btn" onclick="enterPin('0')">0</button>
+      <button class="numpad-btn" style="font-size:16px;color:var(--text-muted)" onclick="enterPin('del')">⌫</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div class="screen hidden" id="screen-dashboard">
+  <div class="dash-header">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div class="dash-greeting">Al Majd Bank</div>
+        <div class="dash-name">Good morning, Viktor</div>
+      </div>
+      <button class="top-bar-icon" onclick="showScreen('screen-settings','slide')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="scroll-content" id="dashScroll">
+    <div class="ptr-indicator" id="ptrIndicator"><div class="ptr-spinner"></div><span>Updating rates…</span></div>
+    <div style="padding:16px 16px 0;display:flex;flex-direction:column;gap:12px">
+      <div id="accountCard1" class="account-card glass" onclick="showScreen('screen-history','slide')">
+        <div class="account-type">Current Account</div>
+        <div class="account-number">QA•• •••• •••• 4821</div>
+        <div class="account-balance" id="balance1">— <span>QAR</span></div>
+        <div class="account-footer">
+          <div class="account-chip">Active</div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+      </div>
+      <div id="accountCard2" class="account-card glass" onclick="showScreen('screen-history','slide')">
+        <div class="account-type">Savings Account</div>
+        <div class="account-number">QA•• •••• •••• 9034</div>
+        <div class="account-balance" id="balance2">— <span>QAR</span></div>
+        <div class="account-footer">
+          <div class="account-chip">Savings</div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+      </div>
+    </div>
+    <!-- FOREX -->
+    <div class="forex-widget glass">
+      <div class="forex-header">
+        <div class="forex-title">Exchange Rates</div>
+        <button class="forex-refresh-btn" onclick="fetchRates()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+          Refresh
+        </button>
+      </div>
+      <div class="forex-error" id="forexError">⚠ Connection error — rates unavailable</div>
+      <div class="forex-row">
+        <div class="forex-pair"><span class="forex-flag">🇪🇺</span><div><div class="forex-pair-name">EUR</div><div class="forex-pair-sub">Euro</div></div></div>
+        <div class="forex-right"><div class="forex-rate" id="eurRate">—</div><div class="forex-change" id="eurChange">—</div></div>
+      </div>
+      <div class="forex-row">
+        <div class="forex-pair"><span class="forex-flag">🇶🇦</span><div><div class="forex-pair-name">QAR</div><div class="forex-pair-sub">Qatari Riyal</div></div></div>
+        <div class="forex-right"><div class="forex-rate" id="qarRate">—</div><div class="forex-change" id="qarChange">—</div></div>
+      </div>
+    </div>
+    <!-- CONVERTER -->
+    <div class="glass" style="margin:10px 16px 0;padding:12px 16px 14px">
+      <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Currency Converter</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="flex:1;display:flex;flex-direction:column;gap:5px">
+          <div style="font-size:10px;color:var(--text-muted);font-weight:700;letter-spacing:0.8px" id="convFromLabel">EUR</div>
+          <input id="convInput" class="conv-input" type="number" placeholder="0" inputmode="decimal" oninput="updateConverter()">
+        </div>
+        <button onclick="toggleConvDir()" style="width:36px;height:36px;border-radius:50%;background:rgba(139,26,47,0.09);border:1.5px solid rgba(139,26,47,0.15);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-top:20px;transition:background .15s">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+        </button>
+        <div style="flex:1;display:flex;flex-direction:column;gap:5px;align-items:flex-end">
+          <div style="font-size:10px;color:var(--text-muted);font-weight:700;letter-spacing:0.8px" id="convToLabel">QAR</div>
+          <div id="convResult" class="conv-result" style="justify-content:flex-end">—</div>
+        </div>
+      </div>
+    </div>
+    <!-- QUICK ACTIONS -->
+    <div class="quick-actions">
+      <button class="qa-btn" onclick="showScreen('screen-transfer','slide')">
+        <div class="qa-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+        <div class="qa-label">Transfer</div>
+      </button>
+      <button class="qa-btn" onclick="showScreen('screen-history','slide')">
+        <div class="qa-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/></svg></div>
+        <div class="qa-label">History</div>
+      </button>
+      <button class="qa-btn" onclick="showScreen('screen-cards','slide')">
+        <div class="qa-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg></div>
+        <div class="qa-label">Cards</div>
+      </button>
+      <button class="qa-btn" onclick="showScreen('screen-support','slide')">
+        <div class="qa-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+        <div class="qa-label">Support</div>
+      </button>
+    </div>
+    <!-- RECENT TX -->
+    <div class="section-header">
+      <div class="section-title">Recent Transactions</div>
+      <div class="section-link" onclick="showScreen('screen-history','slide')">See all</div>
+    </div>
+    <div class="tx-list" id="recentTxList"></div>
+    <div style="height:8px"></div>
+  </div>
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <button class="nav-btn active" onclick="showScreen('screen-dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span class="nav-label">Dashboard</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('screen-history','slide')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>
+      <span class="nav-label">History</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('screen-transfer','slide')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      <span class="nav-label">Transfer</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('screen-settings','slide')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span class="nav-label">Settings</span>
+    </button>
+  </div>
+</div>
+
+<!-- ===== HISTORY ===== -->
+<div class="screen hidden" id="screen-history">
+  <div class="top-bar">
+    <button class="back-btn" onclick="goBack()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg> Back</button>
+    <div class="top-bar-title">Transactions</div>
+    <div style="width:60px"></div>
+  </div>
+  <div class="filter-bar">
+    <div class="filter-chip active" onclick="filterTx('all',this)">All</div>
+    <div class="filter-chip" onclick="filterTx('income',this)">Income</div>
+    <div class="filter-chip" onclick="filterTx('expense',this)">Expenses</div>
+    <div class="filter-chip" onclick="filterTx('transfer',this)">Transfers</div>
+    <div class="filter-chip" onclick="filterTx('shopping',this)">Shopping</div>
+    <div class="filter-chip" onclick="filterTx('food',this)">Food</div>
+    <div class="filter-chip" onclick="filterTx('transport',this)">Transport</div>
+    <div class="filter-chip" onclick="filterTx('health',this)">Health</div>
+    <div class="filter-chip" onclick="filterTx('utilities',this)">Utilities</div>
+    <div class="filter-chip" onclick="filterTx('travel',this)">Travel</div>
+  </div>
+  <div class="scroll-content">
+    <div class="tx-list" id="fullTxList" style="padding-top:8px"></div>
+  </div>
+</div>
+
+<!-- ===== TRANSFER ===== -->
+<div class="screen hidden" id="screen-transfer">
+  <div class="top-bar">
+    <button class="back-btn" onclick="goBack()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg> Back</button>
+    <div class="top-bar-title">New Transfer</div>
+    <div style="width:60px"></div>
+  </div>
+  <div class="scroll-content">
+    <div class="transfer-form">
+      <div class="balance-banner">
+        <div style="font-size:12px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Available balance</div>
+        <div style="font-size:22px;font-weight:700;color:var(--text);margin-top:5px" id="transferBalance">—</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">From account</label>
+        <select class="form-select" id="fromAccount">
+          <option value="1">Current Account — QA•• 4821</option>
+          <option value="2">Savings Account — QA•• 9034</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Recipient name</label>
+        <input class="form-input" type="text" placeholder="Full name" id="recipientName">
+      </div>
+      <div class="form-group">
+        <label class="form-label">IBAN / Account number</label>
+        <input class="form-input" type="text" placeholder="QA•• •••• •••• ••••" id="recipientIban">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount (QAR)</label>
+        <input class="form-input" type="number" placeholder="0.00" id="transferAmount">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Reference (optional)</label>
+        <input class="form-input" type="text" placeholder="Payment reference…" id="transferRef">
+      </div>
+      <button class="submit-btn" onclick="doTransfer()">Confirm Transfer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SETTINGS ===== -->
+<div class="screen hidden" id="screen-settings">
+  <div class="top-bar">
+    <button class="back-btn" onclick="goBack()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg> Back</button>
+    <div class="top-bar-title">Settings</div>
+    <div style="width:60px"></div>
+  </div>
+  <div class="scroll-content">
+    <div style="padding:20px 16px;display:flex;align-items:center;gap:14px">
+      <div style="width:58px;height:58px;background:linear-gradient(135deg,var(--red-light),var(--red-dark));border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:20px;font-weight:700;box-shadow:0 4px 14px rgba(139,26,47,0.30)">VS</div>
+      <div>
+        <div style="font-size:17px;font-weight:700;color:var(--text)">Viktor Sakov</div>
+        <div style="font-size:13px;color:var(--text-muted)">Premium Client · Qatar</div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Security</div>
+      <div class="settings-list">
+        <div class="settings-item">
+          <div class="settings-item-icon" style="background:rgba(139,26,47,0.09)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          <div><div class="settings-item-label">Change PIN</div><div class="settings-item-sub">Update your access code</div></div>
+          <svg class="settings-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+        <div class="settings-item">
+          <div class="settings-item-icon" style="background:rgba(16,185,129,0.09)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2"><path d="M9 9h.01M15 9h.01M8 13s1 2 4 2 4-2 4-2"/><rect x="3" y="3" width="18" height="18" rx="3"/></svg></div>
+          <div class="settings-item-label">Face ID</div>
+          <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+        </div>
+        <div class="settings-item">
+          <div class="settings-item-icon" style="background:rgba(59,130,246,0.09)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
+          <div class="settings-item-label">Notifications</div>
+          <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Preferences</div>
+      <div class="settings-list">
+        <div class="settings-item">
+          <div class="settings-item-icon" style="background:rgba(245,158,11,0.09)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></div>
+          <div><div class="settings-item-label">Language</div><div class="settings-item-sub">English</div></div>
+          <svg class="settings-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+        <div class="settings-item">
+          <div class="settings-item-icon" style="background:rgba(139,26,47,0.09)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          <div><div class="settings-item-label">Currency display</div><div class="settings-item-sub">QAR (Qatari Riyal)</div></div>
+          <svg class="settings-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Administration</div>
+      <div class="settings-list">
+        <div class="settings-item" onclick="openCodeModal()">
+          <div class="settings-item-icon" style="background:rgba(139,26,47,0.12)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <div><div class="settings-item-label">Account Management</div><div class="settings-item-sub">Restricted access</div></div>
+          <svg class="settings-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-list">
+        <div class="settings-item danger" onclick="logout()">
+          <div class="settings-item-icon" style="background:rgba(239,68,68,0.09)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
+          <div class="settings-item-label">Sign out</div>
+        </div>
+      </div>
+    </div>
+    <div style="height:24px"></div>
+  </div>
+</div>
+
+<!-- ===== BACK-OFFICE ===== -->
+<div class="screen hidden" id="screen-backoffice">
+  <div class="top-bar">
+    <button class="back-btn" onclick="goBack()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg> Back</button>
+    <div class="top-bar-title">Account Management</div>
+    <div style="width:60px"></div>
+  </div>
+  <div style="background:rgba(139,26,47,0.07);border-bottom:1px solid rgba(139,26,47,0.10);padding:9px 16px;display:flex;align-items:center;gap:8px;flex-shrink:0">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <span style="font-size:11px;color:var(--red);font-weight:700;letter-spacing:0.5px">ADMIN ACCESS — RESTRICTED</span>
+  </div>
+  <div class="scroll-content">
+    <div class="bo-section">
+      <div class="bo-title">Balances (QAR)</div>
+      <div class="bo-card">
+        <div class="bo-card-title">Current Account</div>
+        <div class="bo-input-row"><div class="bo-input-label">Balance</div><input class="bo-input" type="number" id="boBalance1" step="0.01"></div>
+        <button class="bo-save-btn" onclick="saveBalance(1)">Save</button>
+      </div>
+      <div class="bo-card">
+        <div class="bo-card-title">Savings Account</div>
+        <div class="bo-input-row"><div class="bo-input-label">Balance</div><input class="bo-input" type="number" id="boBalance2" step="0.01"></div>
+        <button class="bo-save-btn" onclick="saveBalance(2)">Save</button>
+      </div>
+    </div>
+    <div class="bo-section" style="padding-top:0">
+      <div class="bo-title">Transactions</div>
+      <div class="bo-card">
+        <div id="boTxList"></div>
+        <button class="bo-add-btn" onclick="addBoTx()">+ Add transaction</button>
+        <button class="bo-save-btn" style="margin-top:10px" onclick="saveTx()">Save all transactions</button>
+      </div>
+    </div>
+    <div class="bo-section" style="padding-top:0">
+      <div class="bo-title">Transfers log</div>
+      <div class="bo-card">
+        <div id="boTransferList" style="font-size:13px;color:var(--text-muted)">No transfers recorded.</div>
+        <button class="bo-save-btn" style="margin-top:10px;background:linear-gradient(135deg,#f87171,#ef4444)" onclick="clearTransfers()">Clear transfers log</button>
+      </div>
+    </div>
+    <div style="height:30px"></div>
+  </div>
+</div>
+
+<!-- ===== CARDS ===== -->
+<div class="screen hidden" id="screen-cards">
+  <div class="top-bar">
+    <button class="back-btn" onclick="goBack()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg> Back</button>
+    <div class="top-bar-title">My Cards</div>
+    <div style="width:60px"></div>
+  </div>
+  <div class="scroll-content">
+    <!-- CAROUSEL -->
+    <div class="cards-scroll-wrap" id="cardsScrollWrap" onscroll="updateCardDots()">
+      <!-- CARD 1 — Current Account (bordeaux) -->
+      <div class="bank-card" style="background:linear-gradient(140deg,var(--red-dark) 0%,#7d1830 45%,var(--red) 80%,#9e2240 100%)">
+        <div class="bank-card-shimmer"></div>
+        <div class="bank-card-orb" style="width:190px;height:190px;top:-60px;right:-50px;background:rgba(255,255,255,0.06)"></div>
+        <div class="bank-card-orb" style="width:140px;height:140px;bottom:-50px;left:-40px;background:rgba(0,0,0,0.08)"></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1">
+          <div>
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:2px">
+              <svg width="16" height="16" viewBox="0 0 44 44" fill="none"><path d="M22 6L38 14V22C38 30.837 30.837 38 22 38C13.163 38 6 30.837 6 22V14L22 6Z" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.55)" stroke-width="2"/><path d="M15 22H29M22 15V29" stroke="white" stroke-width="2.2" stroke-linecap="round"/></svg>
+              <div class="card-bank-name">Al Majd Bank</div>
+            </div>
+            <div class="card-type-badge">Current Account</div>
+          </div>
+          <div class="card-chip" style="margin-top:2px"></div>
+        </div>
+        <div class="card-number">•••• &nbsp;•••• &nbsp;•••• &nbsp;4821</div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;position:relative;z-index:1">
+          <div><div class="card-label">Card Holder</div><div class="card-holder">Viktor Sakov</div></div>
+          <div><div class="card-label">Valid Thru</div><div class="card-expiry">09/28</div></div>
+          <div class="card-visa">VISA</div>
+        </div>
+      </div>
+      <!-- CARD 2 — Savings (prune foncé) -->
+      <div class="bank-card" style="background:linear-gradient(140deg,#2d1045 0%,#4a1868 45%,#5e2080 80%,#4a1860 100%)">
+        <div class="bank-card-shimmer"></div>
+        <div class="bank-card-orb" style="width:190px;height:190px;top:-60px;right:-50px;background:rgba(255,255,255,0.06)"></div>
+        <div class="bank-card-orb" style="width:140px;height:140px;bottom:-50px;left:-40px;background:rgba(0,0,0,0.1)"></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1">
+          <div>
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:2px">
+              <svg width="16" height="16" viewBox="0 0 44 44" fill="none"><path d="M22 6L38 14V22C38 30.837 30.837 38 22 38C13.163 38 6 30.837 6 22V14L22 6Z" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.55)" stroke-width="2"/><path d="M15 22H29M22 15V29" stroke="white" stroke-width="2.2" stroke-linecap="round"/></svg>
+              <div class="card-bank-name">Al Majd Bank</div>
+            </div>
+            <div class="card-type-badge">Savings Account</div>
+          </div>
+          <div class="card-chip" style="margin-top:2px"></div>
+        </div>
+        <div class="card-number">•••• &nbsp;•••• &nbsp;•••• &nbsp;9034</div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;position:relative;z-index:1">
+          <div><div class="card-label">Card Holder</div><div class="card-holder">Viktor Sakov</div></div>
+          <div><div class="card-label">Valid Thru</div><div class="card-expiry">03/31</div></div>
+          <div class="card-visa">VISA</div>
+        </div>
+      </div>
+    </div>
+    <!-- PAGINATION DOTS -->
+    <div class="card-dots" id="cardDots">
+      <div class="card-dot active"></div>
+      <div class="card-dot"></div>
+    </div>
+    <!-- CARD ACTIONS -->
+    <div class="card-actions">
+      <button class="card-action-btn" onclick="showToast('Card frozen successfully ✓','success')">
+        <div class="card-action-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg></div>
+        <div class="card-action-label">Freeze Card</div>
+      </button>
+      <button class="card-action-btn" onclick="showToast('Details sent to your email')">
+        <div class="card-action-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+        <div class="card-action-label">Card Details</div>
+      </button>
+      <button class="card-action-btn" onclick="showToast('Limit change request sent')">
+        <div class="card-action-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+        <div class="card-action-label">Set Limit</div>
+      </button>
+      <button class="card-action-btn" onclick="showToast('Replacement card requested')">
+        <div class="card-action-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg></div>
+        <div class="card-action-label">Replace Card</div>
+      </button>
+    </div>
+    <!-- RECENT ACTIVITY -->
+    <div class="section-header">
+      <div class="section-title">Recent Activity</div>
+      <div class="section-link" onclick="showScreen('screen-history','slide')">See all</div>
+    </div>
+    <div class="tx-list" id="cardRecentTx"></div>
+    <div style="height:24px"></div>
+  </div>
+</div>
+
+<!-- ===== SUPPORT ===== -->
+<div class="screen hidden" id="screen-support">
+  <div class="top-bar">
+    <button class="back-btn" onclick="goBack()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg> Back</button>
+    <div class="top-bar-title">Support</div>
+    <div style="width:60px"></div>
+  </div>
+  <div class="scroll-content">
+    <!-- HEADER -->
+    <div style="padding:22px 20px 16px">
+      <div style="font-size:22px;font-weight:700;color:var(--text);letter-spacing:-0.3px">How can we help?</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-top:5px">We're available 7 days a week for you</div>
+    </div>
+    <!-- SEARCH -->
+    <div class="support-search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input placeholder="Search for help…">
+    </div>
+    <!-- QUICK ACTIONS -->
+    <div class="section-header"><div class="section-title">Quick Actions</div></div>
+    <div class="support-qa-grid">
+      <button class="support-qa-btn" onclick="showToast('Connecting to agent…')">
+        <div class="support-qa-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/><line x1="8" y1="17" x2="8.01" y2="17"/></svg></div>
+        <div class="support-qa-label">Report Lost Card</div>
+        <div class="support-qa-sub">Block & request replacement instantly</div>
+      </button>
+      <button class="support-qa-btn" onclick="showToast('Opening dispute form…')">
+        <div class="support-qa-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+        <div class="support-qa-label">Dispute a Transaction</div>
+        <div class="support-qa-sub">Challenge an unrecognized charge</div>
+      </button>
+      <button class="support-qa-btn" onclick="showToast('Unblock request submitted')">
+        <div class="support-qa-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+        <div class="support-qa-label">Account Blocked</div>
+        <div class="support-qa-sub">Restore access to your account</div>
+      </button>
+      <button class="support-qa-btn" onclick="showToast('Statement will be emailed')">
+        <div class="support-qa-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+        <div class="support-qa-label">Request Statement</div>
+        <div class="support-qa-sub">Download or email your statement</div>
+      </button>
+    </div>
+    <!-- FAQ -->
+    <div class="section-header"><div class="section-title">FAQ</div></div>
+    <div class="glass-strong" style="margin:0 16px;border-radius:var(--radius-sm);overflow:hidden">
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q"><span class="faq-q-text">What are the limits for international transfers?</span><svg class="faq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div>
+        <div class="faq-a">Standard international wires are capped at QAR 50,000 per transaction and QAR 200,000 per day. Private banking clients can request higher limits directly from their relationship manager.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q"><span class="faq-q-text">How long does an international transfer take?</span><svg class="faq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div>
+        <div class="faq-a">SEPA (Europe): 1–2 business days. SWIFT (global): 2–5 business days. GCC transfers: same or next business day. Transfers submitted after 3 PM are processed the following business day.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q"><span class="faq-q-text">How do I protect my account from fraud?</span><svg class="faq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div>
+        <div class="faq-a">Enable Face ID and push notifications. Al Majd Bank will never ask for your PIN or full card number by phone or email. If you suspect fraud, freeze your card immediately and call +974 4411 0000.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q"><span class="faq-q-text">Can I use my card abroad without fees?</span><svg class="faq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div>
+        <div class="faq-a">Private banking clients enjoy zero foreign transaction fees on purchases. ATM withdrawals abroad incur a flat fee of QAR 15. Currency conversion uses the Visa interbank rate plus 0.5%.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q"><span class="faq-q-text">How do I update my contact information?</span><svg class="faq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div>
+        <div class="faq-a">Visit any Al Majd Bank branch with a valid Qatar ID, or contact your dedicated relationship manager. Address and phone changes require in-person verification for security.</div>
+      </div>
+    </div>
+    <!-- CONTACT -->
+    <div class="section-header"><div class="section-title">Contact Us</div></div>
+    <div class="glass-strong" style="margin:0 16px;border-radius:var(--radius-sm);overflow:hidden">
+      <div class="contact-row">
+        <div class="contact-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.1 2.18 2 2 0 012.11 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92v2z"/></svg></div>
+        <div><div class="contact-label">+974 4411 0000</div><div class="contact-sub">24/7 emergency line</div></div>
+      </div>
+      <div class="contact-row">
+        <div class="contact-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+        <div><div class="contact-label">support@almajdbank.qa</div><div class="contact-sub">Response within 2 hours</div></div>
+      </div>
+      <div class="contact-row">
+        <div class="contact-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div><div class="contact-label">Sun – Thu · 8AM – 8PM</div><div class="contact-sub">Qatar Standard Time (UTC+3)</div></div>
+      </div>
+    </div>
+    <!-- LIVE CHAT -->
+    <div style="padding:20px 16px 34px">
+      <button class="submit-btn" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%" onclick="showToast('Connecting to live chat…')">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Start Live Chat
+      </button>
+    </div>
+  </div>
+</div>
+
+</div><!-- #app -->
+<script>
+const EUR_TO_QAR = 3.97;
+let liveEurQar = EUR_TO_QAR;
+let convDir = 'eur-qar';
+const CATEGORIES = {
+  income:    { label:'Income',     icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>`, color:'income' },
+  shopping:  { label:'Shopping',   icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>`, color:'expense' },
+  food:      { label:'Food',       icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/></svg>`, color:'expense' },
+  transport: { label:'Transport',  icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 4v4h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>`, color:'expense' },
+  health:    { label:'Health',     icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`, color:'expense' },
+  utilities: { label:'Utilities',  icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`, color:'expense' },
+  travel:    { label:'Travel',     icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 19 4c-2 0-4 2-4 2L11 8 2.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>`, color:'expense' },
+  restaurant:{ label:'Restaurant', icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>`, color:'expense' },
+  transfer:  { label:'Transfer',   icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>`, color:'transfer-icon' },
+  other:     { label:'Other',      icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>`, color:'expense' },
+};
+
+let state = {
+  balances: [parseFloat((200*EUR_TO_QAR).toFixed(2)), parseFloat((3000*EUR_TO_QAR).toFixed(2))],
+  transactions: [
+    {id:1, name:'Salary Deposit',      date:'01 Jun 2026', amount:+5000,  category:'income'},
+    {id:2, name:'Al Meera Supermarket',date:'31 May 2026', amount:-142.50,category:'shopping'},
+    {id:3, name:'Qatar Electricity',   date:'30 May 2026', amount:-380,   category:'utilities'},
+    {id:4, name:'Transfer from Savings',date:'29 May 2026',amount:+1000,  category:'transfer'},
+    {id:5, name:'Al Majd Café',        date:'28 May 2026', amount:-45,    category:'food'},
+    {id:6, name:'Investment Return',   date:'27 May 2026', amount:+800,   category:'income'},
+    {id:7, name:'Vodafone Qatar',      date:'26 May 2026', amount:-199,   category:'utilities'},
+    {id:8, name:'IKEA Doha',           date:'25 May 2026', amount:-620,   category:'shopping'},
+    {id:9, name:'Hamad Airport Taxi',  date:'24 May 2026', amount:-87,    category:'transport'},
+    {id:10,name:'Al Ahli Hospital',    date:'23 May 2026', amount:-320,   category:'health'},
+    {id:11,name:'Qatar Airways',       date:'22 May 2026', amount:-1850,  category:'travel'},
+    {id:12,name:'Nobu Doha',           date:'21 May 2026', amount:-430,   category:'restaurant'},
+  ],
+  transfers: [],
+  currentScreen: 'screen-login',
+  screenStack: [],
+  pinBuffer: '',
+  modalBuffer: '',
+};
+(function(){
+  try{
+    const b=localStorage.getItem('almb_balances');
+    const t=localStorage.getItem('almb_transactions');
+    const tr=localStorage.getItem('almb_transfers');
+    if(b) state.balances=JSON.parse(b);
+    if(t) state.transactions=JSON.parse(t);
+    if(tr) state.transfers=JSON.parse(tr);
+  }catch(e){}
+})();
+
+// PIN LOGIN
+function enterPin(v) {
+  if (v==='del') { state.pinBuffer=state.pinBuffer.slice(0,-1); }
+  else { if(state.pinBuffer.length>=4) return; state.pinBuffer+=v; }
+  updateDots('pinDots', state.pinBuffer.length);
+  if (state.pinBuffer.length===4) {
+    setTimeout(()=>{
+      if (state.pinBuffer==='1516') { state.pinBuffer=''; updateDots('pinDots',0); loginSuccess(); }
+      else {
+        document.getElementById('loginError').textContent='Incorrect PIN. Please try again.';
+        setTimeout(()=>{ state.pinBuffer=''; updateDots('pinDots',0); document.getElementById('loginError').textContent=''; },1200);
+      }
+    },200);
+  }
+}
+function updateDots(id, n) {
+  document.getElementById(id).querySelectorAll('.pin-dot,.modal-dot').forEach((d,i)=>i<n?d.classList.add('filled'):d.classList.remove('filled'));
+}
+function triggerFaceId() {
+  const o=document.getElementById('faceidOverlay'); o.classList.add('show');
+  setTimeout(()=>{ o.classList.remove('show'); loginSuccess(); },2000);
+}
+function loginSuccess() { renderDashboard(); showScreen('screen-dashboard'); fetchRates(); }
+function logout() { state.pinBuffer=''; showScreen('screen-login'); state.screenStack=[]; }
+
+// SCREENS
+function showScreen(id, dir) {
+  const cur = document.querySelector('.screen:not(.hidden):not(.slide-left)');
+  if (cur && cur.id!==id) {
+    if (dir==='slide') { cur.classList.add('slide-left'); state.screenStack.push(cur.id); }
+    else { cur.classList.add('hidden'); state.screenStack=[]; }
+  }
+  const next=document.getElementById(id);
+  next.classList.remove('hidden','slide-left');
+  state.currentScreen=id;
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const nm={'screen-dashboard':0,'screen-history':1,'screen-transfer':2,'screen-settings':3};
+  const nb=document.querySelectorAll('.nav-btn');
+  if(nm[id]!==undefined&&nb[nm[id]]) nb[nm[id]].classList.add('active');
+}
+function goBack() {
+  if(state.screenStack.length>0) {
+    const prev=state.screenStack.pop();
+    const cur=document.querySelector('.screen:not(.hidden):not(.slide-left)');
+    if(cur) cur.classList.add('hidden');
+    const p=document.getElementById(prev);
+    p.classList.remove('hidden','slide-left');
+    state.currentScreen=prev;
+  }
+}
+
+// RENDER
+function fmt(n){ return n.toLocaleString('en-QA',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function renderDashboard() {
+  document.getElementById('balance1').innerHTML=fmt(state.balances[0])+' <span>QAR</span>';
+  document.getElementById('balance2').innerHTML=fmt(state.balances[1])+' <span>QAR</span>';
+  document.getElementById('recentTxList').innerHTML=state.transactions.slice(0,4).map(txHTML).join('');
+  const crtx=document.getElementById('cardRecentTx');
+  if(crtx) crtx.innerHTML=state.transactions.slice(0,3).map(txHTML).join('');
+  renderFullTx();
+  updateTransferBalance();
+}
+function renderFullTx(filter='all') {
+  const list=document.getElementById('fullTxList'); if(!list) return;
+  let txs=state.transactions;
+  if(filter==='income') txs=txs.filter(t=>t.amount>0);
+  else if(filter==='expense') txs=txs.filter(t=>t.amount<0&&t.category!=='transfer');
+  else if(filter==='transfer') txs=txs.filter(t=>t.category==='transfer');
+  else if(filter!=='all') txs=txs.filter(t=>t.category===filter);
+  list.innerHTML=txs.length ? txs.map(txHTML).join('') : '<div style="text-align:center;padding:32px;color:var(--text-muted);font-size:14px">No transactions found</div>';
+}
+function txHTML(tx) {
+  const cat=CATEGORIES[tx.category]||CATEGORIES.other;
+  const isInc=tx.amount>0;
+  const amtFmt=(isInc?'+':'')+fmt(tx.amount)+' QAR';
+  return `<div class="tx-item">
+    <div class="tx-icon ${cat.color}">${cat.icon}</div>
+    <div class="tx-info">
+      <div class="tx-name">${tx.name}</div>
+      <div class="tx-date">${tx.date}</div>
+      <div class="tx-cat">${cat.label}</div>
+    </div>
+    <div class="tx-amount ${isInc?'income':'expense'}">${amtFmt}</div>
+  </div>`;
+}
+function filterTx(f,el) {
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active'); renderFullTx(f);
+}
+function updateTransferBalance() {
+  const sel=document.getElementById('fromAccount'); if(!sel) return;
+  const idx=parseInt(sel.value)-1;
+  document.getElementById('transferBalance').textContent=fmt(state.balances[idx])+' QAR';
+}
+
+// FOREX
+async function fetchRates() {
+  const errEl=document.getElementById('forexError');
+  try {
+    const res=await fetch('https://api.frankfurter.app/latest?from=USD&to=EUR,QAR');
+    if(!res.ok) throw new Error();
+    const data=await res.json();
+    const eurRate=(1/data.rates.EUR).toFixed(4);
+    const qarRate=data.rates.QAR.toFixed(4);
+    liveEurQar=parseFloat(((1/data.rates.EUR)*data.rates.QAR).toFixed(4));
+    updateConverter();
+    const eurChg=(Math.random()*.008-.004).toFixed(4);
+    const qarChg=(Math.random()*.002-.001).toFixed(4);
+    document.getElementById('eurRate').textContent=eurRate+' USD';
+    document.getElementById('qarRate').textContent=qarRate+' USD';
+    const eu=parseFloat(eurChg)>=0;
+    document.getElementById('eurChange').innerHTML=`<span>${eu?'▲':'▼'}</span> ${Math.abs(eurChg)}`;
+    document.getElementById('eurChange').className='forex-change '+(eu?'up':'down');
+    const qu=parseFloat(qarChg)>=0;
+    document.getElementById('qarChange').innerHTML=`<span>${qu?'▲':'▼'}</span> ${Math.abs(qarChg)}`;
+    document.getElementById('qarChange').className='forex-change '+(qu?'up':'down');
+    errEl&&errEl.classList.remove('show');
+  } catch(e) {
+    errEl&&errEl.classList.add('show');
+    ['eurRate','qarRate'].forEach(id=>document.getElementById(id).textContent='—');
+    ['eurChange','qarChange'].forEach(id=>document.getElementById(id).textContent='—');
+  }
+}
+
+// PULL TO REFRESH
+let ptrStart=0,ptrActive=false;
+document.addEventListener('touchstart',e=>{const sc=document.getElementById('dashScroll');if(sc&&sc.scrollTop===0)ptrStart=e.touches[0].clientY},{passive:true});
+document.addEventListener('touchmove',e=>{if(state.currentScreen!=='screen-dashboard')return;const sc=document.getElementById('dashScroll');if(!sc||sc.scrollTop>0)return;if(e.touches[0].clientY-ptrStart>60&&!ptrActive){ptrActive=true;document.getElementById('ptrIndicator').classList.add('visible');}},{passive:true});
+document.addEventListener('touchend',()=>{if(ptrActive){ptrActive=false;fetchRates();setTimeout(()=>document.getElementById('ptrIndicator')&&document.getElementById('ptrIndicator').classList.remove('visible'),1500);}ptrStart=0;});
+
+// TRANSFER
+document.addEventListener('DOMContentLoaded',()=>{const s=document.getElementById('fromAccount');if(s)s.addEventListener('change',updateTransferBalance);});
+function doTransfer() {
+  const name=document.getElementById('recipientName').value.trim();
+  const iban=document.getElementById('recipientIban').value.trim();
+  const amount=parseFloat(document.getElementById('transferAmount').value);
+  const ref=document.getElementById('transferRef').value.trim();
+  const acc=parseInt(document.getElementById('fromAccount').value)-1;
+  if(!name||!iban||isNaN(amount)||amount<=0){showToast('Please fill in all required fields','error');return;}
+  if(amount>state.balances[acc]){showToast('Insufficient balance','error');return;}
+  state.balances[acc]-=amount;
+  const today=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  state.transactions.unshift({id:Date.now(),name:'Transfer to '+name,date:today,amount:-amount,category:'transfer'});
+  state.transfers.push({to:name,iban,amount,ref,date:today,acc:acc===0?'Current':'Savings'});
+  renderDashboard();saveState();
+  ['recipientName','recipientIban','transferAmount','transferRef'].forEach(id=>document.getElementById(id).value='');
+  showToast('✓ Transfer sent successfully','success');
+  setTimeout(()=>goBack(),1500);
+}
+
+// MODAL
+function openCodeModal(){state.modalBuffer='';updateDots('modalDots',0);document.getElementById('modalError').textContent='';document.getElementById('codeModal').classList.add('show');}
+function closeModal(){document.getElementById('codeModal').classList.remove('show');state.modalBuffer='';}
+function modalPin(v){
+  if(v==='del')state.modalBuffer=state.modalBuffer.slice(0,-1);
+  else if(v==='clear')state.modalBuffer='';
+  else{if(state.modalBuffer.length>=4)return;state.modalBuffer+=v;}
+  updateDots('modalDots',state.modalBuffer.length);
+  if(state.modalBuffer.length===4){
+    setTimeout(()=>{
+      if(state.modalBuffer==='6677'){closeModal();openBackOffice();}
+      else{document.getElementById('modalError').textContent='Invalid code. Access denied.';setTimeout(()=>{state.modalBuffer='';updateDots('modalDots',0);document.getElementById('modalError').textContent='';},1200);}
+    },200);
+  }
+}
+
+// BACK-OFFICE
+function openBackOffice(){renderBackOffice();showScreen('screen-backoffice','slide');}
+function renderBackOffice(){
+  document.getElementById('boBalance1').value=state.balances[0].toFixed(2);
+  document.getElementById('boBalance2').value=state.balances[1].toFixed(2);
+  renderBoTx();renderBoTransfers();
+}
+function catOptions(selected){
+  return Object.entries(CATEGORIES).map(([k,v])=>`<option value="${k}"${k===selected?' selected':''}>${v.label}</option>`).join('');
+}
+function renderBoTx(){
+  document.getElementById('boTxList').innerHTML=state.transactions.map(tx=>`
+    <div class="bo-tx-item">
+      <div class="bo-tx-grid">
+        <input class="bo-tx-name-input" type="text" value="${tx.name}" id="boTxName_${tx.id}" placeholder="Transaction name">
+        <input class="bo-tx-amount-input" type="number" value="${tx.amount}" id="boTx_${tx.id}" step="0.01" placeholder="Amount">
+        <button class="bo-remove-btn" onclick="removeTx(${tx.id})">✕</button>
+      </div>
+      <div class="bo-tx-selects">
+        <select class="bo-tx-select" id="boTxCat_${tx.id}">${catOptions(tx.category)}</select>
+        <input class="bo-tx-name-input" type="text" value="${tx.date}" id="boTxDate_${tx.id}" placeholder="Date" style="height:30px;font-size:12px">
+      </div>
+    </div>
+  `).join('');
+}
+function renderBoTransfers(){
+  const list=document.getElementById('boTransferList');
+  if(!state.transfers.length){list.innerHTML='<div style="color:var(--text-muted);font-size:13px">No transfers recorded.</div>';return;}
+  list.innerHTML=state.transfers.map(t=>`
+    <div style="padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.06)">
+      <div style="font-size:13px;font-weight:600;color:var(--text)">${t.to} — ${parseFloat(t.amount).toFixed(2)} QAR</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${t.date} · ${t.acc} · ${t.iban}</div>
+      ${t.ref?`<div style="font-size:12px;color:var(--text-muted)">Ref: ${t.ref}</div>`:''}
+    </div>`).join('');
+}
+function saveBalance(n){
+  const v=parseFloat(document.getElementById('boBalance'+n).value);
+  if(isNaN(v)||v<0){showToast('Invalid amount','error');return;}
+  state.balances[n-1]=v;renderDashboard();saveState();showToast('Balance updated ✓','success');
+}
+function addBoTx(){
+  const today=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  state.transactions.unshift({id:Date.now(),name:'New Transaction',date:today,amount:0,category:'other'});
+  renderBoTx();saveState();
+}
+function removeTx(id){state.transactions=state.transactions.filter(t=>t.id!==id);renderBoTx();saveState();}
+function saveTx(){
+  state.transactions.forEach(tx=>{
+    const ni=document.getElementById('boTxName_'+tx.id);
+    const ai=document.getElementById('boTx_'+tx.id);
+    const ci=document.getElementById('boTxCat_'+tx.id);
+    const di=document.getElementById('boTxDate_'+tx.id);
+    if(ni) tx.name=ni.value||tx.name;
+    if(ai) tx.amount=parseFloat(ai.value)||0;
+    if(ci) tx.category=ci.value;
+    if(di) tx.date=di.value||tx.date;
+  });
+  renderDashboard();saveState();showToast('Transactions saved ✓','success');
+}
+function clearTransfers(){state.transfers=[];renderBoTransfers();saveState();showToast('Transfers log cleared','success');}
+
+// PERSIST
+function saveState(){
+  try{
+    localStorage.setItem('almb_balances',JSON.stringify(state.balances));
+    localStorage.setItem('almb_transactions',JSON.stringify(state.transactions));
+    localStorage.setItem('almb_transfers',JSON.stringify(state.transfers));
+  }catch(e){}
+}
+
+// CARDS
+function updateCardDots(){
+  const wrap=document.getElementById('cardsScrollWrap');
+  if(!wrap) return;
+  const cardW=wrap.querySelector('.bank-card').offsetWidth+16;
+  const idx=Math.min(Math.round(wrap.scrollLeft/cardW),1);
+  document.querySelectorAll('#cardDots .card-dot').forEach((d,i)=>i===idx?d.classList.add('active'):d.classList.remove('active'));
+}
+
+// SUPPORT FAQ
+function toggleFaq(el){el.classList.toggle('open');}
+
+// SPLASH
+function initSplash(){
+  const splash=document.getElementById('screen-splash');
+  const spinner=document.getElementById('splashSpinner');
+  setTimeout(()=>{
+    spinner.style.animation='spin 0.85s linear infinite';
+    spinner.style.opacity='1';
+    const dur=500+Math.random()*1000;
+    setTimeout(()=>{
+      splash.style.opacity='0';
+      setTimeout(()=>{splash.style.display='none';},500);
+    },dur);
+  },500);
+}
+
+// CONVERTER
+function updateConverter(){
+  const v=parseFloat(document.getElementById('convInput').value);
+  const r=document.getElementById('convResult');
+  if(!v||isNaN(v)){r.textContent='—';return;}
+  r.textContent=convDir==='eur-qar'?fmt(v*liveEurQar)+' QAR':fmt(v/liveEurQar)+' EUR';
+}
+function toggleConvDir(){
+  convDir=convDir==='eur-qar'?'qar-eur':'eur-qar';
+  document.getElementById('convFromLabel').textContent=convDir==='eur-qar'?'EUR':'QAR';
+  document.getElementById('convToLabel').textContent=convDir==='eur-qar'?'QAR':'EUR';
+  document.getElementById('convInput').value='';
+  document.getElementById('convResult').textContent='—';
+}
+
+// TOAST
+let toastTimer;
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');t.textContent=msg;
+  t.className='toast show'+(type?' '+type:'');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.className='toast',2800);
+}
+
+window.addEventListener('DOMContentLoaded',()=>{renderDashboard();initSplash();});
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>

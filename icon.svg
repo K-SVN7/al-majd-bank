@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="108" fill="#8B1A2F"/>
+  <!-- Subtle top highlight -->
+  <ellipse cx="256" cy="60" rx="220" ry="110" fill="rgba(255,255,255,0.07)"/>
+  <!-- Bottom depth shadow -->
+  <ellipse cx="256" cy="480" rx="180" ry="70" fill="rgba(0,0,0,0.12)"/>
+  <!-- Shield outline -->
+  <path d="M256 108 L394 166 L394 258 C394 346 332 412 256 436 C180 412 118 346 118 258 L118 166 Z"
+        fill="rgba(255,255,255,0.13)"
+        stroke="rgba(255,255,255,0.52)"
+        stroke-width="11"
+        stroke-linejoin="round"/>
+  <!-- Inner shield glow -->
+  <path d="M256 136 L372 186 L372 255 C372 330 320 388 256 410 C192 388 140 330 140 255 L140 186 Z"
+        fill="rgba(255,255,255,0.06)"/>
+  <!-- Horizontal bar -->
+  <line x1="194" y1="263" x2="318" y2="263"
+        stroke="white" stroke-width="26" stroke-linecap="round"/>
+  <!-- Vertical bar -->
+  <line x1="256" y1="201" x2="256" y2="325"
+        stroke="white" stroke-width="26" stroke-linecap="round"/>
+</svg>
