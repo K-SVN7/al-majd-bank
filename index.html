@@ -1004,6 +1004,10 @@ function goBack() {
     const p=document.getElementById(prev);
     p.classList.remove('hidden','slide-left');
     state.currentScreen=prev;
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    const nm={'screen-dashboard':0,'screen-history':1,'screen-transfer':2,'screen-settings':3};
+    const nb=document.querySelectorAll('.nav-btn');
+    if(nm[prev]!==undefined&&nb[nm[prev]]) nb[nm[prev]].classList.add('active');
   }
 }
 
